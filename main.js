@@ -20,14 +20,14 @@ import { maze } from "./src/mazes/dfs";
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
 // will eventually get x and y from user input
-const X = 17;
-const Y = 17;
+let X = 17;
+let Y = 17;
 
 let mazeClass = new Maze({
   dimensions: { x: X, y: Y },
   algoType: 'dfs',
   start: { x: -40, z: -45 },
-  end: { x: 45, z: 40 },
+  end: { x: 45 - 17 + X, z: 40 - 17 + Y },
 }, scene, world);
 
 
@@ -44,6 +44,24 @@ function onMouseMove(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   getIntersects();
+}
+
+function newMaze() {
+  mazeClass.derender();
+  mazeClass = new Maze({
+    dimensions: { x: X, y: Y },
+    algoType: 'dfs',
+    start: { x: -40, z: -45 },
+    end: { x: 45, z: 40 },
+  }, scene, world);
+  mazeClass.render();
+  // rendering the walls of the new maze 
+  for (let key in sceneObjects) {
+    if (key.includes('wall')) {
+      sceneObjects[key].render();
+    }
+  }
+  GSAP.gsap.to(sceneObjects.ball.body.position, {x: mazeClass.start.x, z: mazeClass.start.z, duration: 1});
 }
 
 // function onClick() {
@@ -134,6 +152,28 @@ async function init() {
   // lighting.ambientLight.intensity = 1;
   // add gui
   const gui = new GUI();
+  const mazeFolder = gui.addFolder("Maze");
+  const mazeProps = {
+    get X() {
+      return X;
+    },
+    set X(value) {
+      X = value;
+    },
+    get Y() {
+      return Y;
+    },
+    set Y(value) {
+      Y = value;
+    },
+  }
+  mazeFolder.add(mazeProps, "X", 5, 17, 1);
+  mazeFolder.add(mazeProps, "Y", 5, 17, 1);
+  // add a button to the maze folder
+  mazeFolder.add({ Generate: () => {
+    newMaze();
+  }}, "Generate");
+
   const lightingFolder = gui.addFolder("Lighting");
   const directionalLightFolder = lightingFolder.addFolder("Directional Light");
   const directionalLightPositionFolder =
