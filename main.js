@@ -23,13 +23,19 @@ const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 let X = 17;
 let Y = 17;
 
+
+let mazeParams = { 
+  algorithm: 'dfs',
+  X: 17,
+  Y: 17,
+}
+
 let mazeClass = new Maze({
-  dimensions: { x: X, y: Y },
-  algoType: 'dfs',
+  dimensions: { x: mazeParams.X, y: mazeParams.Y },
+  algoType: mazeParams.algorithm,
   start: { x: -40, z: -45 },
   end: { x: 45 - 17 + X, z: 40 - 17 + Y },
 }, scene, world);
-
 
 let controls, stats;
 let intersects = [];
@@ -49,8 +55,8 @@ function onMouseMove(event) {
 function newMaze() {
   mazeClass.derender();
   mazeClass = new Maze({
-    dimensions: { x: X, y: Y },
-    algoType: 'dfs',
+    dimensions: { x: mazeParams.X, y: mazeParams.Y },
+    algoType: mazeParams.algorithm,
     start: { x: -40, z: -45 },
     end: { x: 45, z: 40 },
   }, scene, world);
@@ -155,18 +161,19 @@ async function init() {
   const mazeFolder = gui.addFolder("Maze");
   const mazeProps = {
     get X() {
-      return X;
+      return mazeParams.X;
     },
     set X(value) {
-      X = value;
+      mazeParams.X = value;
     },
     get Y() {
-      return Y;
+      return mazeParams.Y;
     },
     set Y(value) {
-      Y = value;
+      mazeParams.Y = value;
     },
   }
+  mazeFolder.add( mazeParams, 'algorithm', { DFS: 'dfs', Kruskal: 'kruskal', Eller: 'eller', Prims: 'prims', 'Recursive Backtracking': 'recurback' })
   mazeFolder.add(mazeProps, "X", 5, 17, 1);
   mazeFolder.add(mazeProps, "Y", 5, 17, 1);
   // add a button to the maze folder
@@ -266,21 +273,22 @@ async function init() {
   window.addEventListener("mousemove", onMouseMove, false);
   window.addEventListener("keydown", (e) => {
     if(e.key === 'o') {
-      mazeClass.derender();
-      mazeClass = new Maze({
-        dimensions: { x: X, y: Y },
-        algoType: 'dfs',
-        start: { x: -40, z: -45 },
-        end: { x: 45, z: 40 },
-      }, scene, world);
-      mazeClass.render();
-      // rendering the walls of the new maze 
-      for (let key in sceneObjects) {
-        if (key.includes('wall')) {
-          sceneObjects[key].render();
-        }
-      }
-      GSAP.gsap.to(sceneObjects.ball.body.position, {x: mazeClass.start.x, z: mazeClass.start.z, duration: 1});      
+      // mazeClass.derender();
+      // mazeClass = new Maze({
+      //   dimensions: { x: X, y: Y },
+      //   algoType: 'eller',
+      //   start: { x: -40, z: -45 },
+      //   end: { x: 45, z: 40 },
+      // }, scene, world);
+      // mazeClass.render();
+      // // rendering the walls of the new maze 
+      // for (let key in sceneObjects) {
+      //   if (key.includes('wall')) {
+      //     sceneObjects[key].render();
+      //   }
+      // }
+      // GSAP.gsap.to(sceneObjects.ball.body.position, {x: mazeClass.start.x, z: mazeClass.start.z, duration: 1});      
+      newMaze();
     }
     else {
       setKey(e, true);
@@ -317,6 +325,7 @@ function animate() {
   onHover();
   stats.begin();
   renderer.render(scene, camera);
+  // console.log(mazeParams);
   stats.end();
   resetFromHover();
   // controls.update();
