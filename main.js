@@ -7,14 +7,23 @@ import Stats from "three/examples/jsm/libs/stats.module.js";
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { Ball } from "./src/components/objects/ball";
 import { mazes } from "./src/mazes/mazes";
-import { Vector3 } from 'three';    
+import { Vector3 } from "three";
 import { textures } from "./src/utils/textures";
 import { Maze } from "./src/components/objects/maze";
 import { setKey } from "./src/utils/keyControls";
 import { setZoom } from "./src/components/camera/orthographicCamera";
 import { Box } from "./src/components/objects/box";
 import * as GSAP from "gsap";
-import { sceneObjects, lighting, scene, world, cannonDebugger, addObject, removeObject, addBall } from "./src/scenes/perspective";
+import {
+  sceneObjects,
+  lighting,
+  scene,
+  world,
+  cannonDebugger,
+  addObject,
+  removeObject,
+  addBall,
+} from "./src/scenes/perspective";
 import { maze } from "./src/mazes/dfs";
 
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -23,19 +32,33 @@ const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 let X = 17;
 let Y = 17;
 
+const clockDiv = document.getElementById("clock");
+let time = 0;
+let millis;
+let timerbool = false;
 
-let mazeParams = { 
-  algorithm: 'dfs',
+let mazeParams = {
+  algorithm: "dfs",
   X: 17,
   Y: 17,
-}
+};
 
-let mazeClass = new Maze({
-  dimensions: { x: mazeParams.X, y: mazeParams.Y },
-  algoType: mazeParams.algorithm,
-  start: { x: -40, z: -45 },
-  end: { x: 45 - 17 + X, z: 40 - 17 + Y },
-}, scene, world);
+// This example takes 2 seconds to run
+const start = Date.now();
+
+console.log("starting timer...");
+// Expected output: "starting timer..."
+
+let mazeClass = new Maze(
+  {
+    dimensions: { x: mazeParams.X, y: mazeParams.Y },
+    algoType: mazeParams.algorithm,
+    start: { x: -40, z: -45 },
+    end: { x: 45 - 17 + X, z: 40 - 17 + Y },
+  },
+  scene,
+  world
+);
 
 let controls, stats;
 let intersects = [];
@@ -54,20 +77,28 @@ function onMouseMove(event) {
 
 function newMaze() {
   mazeClass.derender();
-  mazeClass = new Maze({
-    dimensions: { x: mazeParams.X, y: mazeParams.Y },
-    algoType: mazeParams.algorithm,
-    start: { x: -40, z: -45 },
-    end: { x: 45, z: 40 },
-  }, scene, world);
+  mazeClass = new Maze(
+    {
+      dimensions: { x: mazeParams.X, y: mazeParams.Y },
+      algoType: mazeParams.algorithm,
+      start: { x: -40, z: -45 },
+      end: { x: 45, z: 40 },
+    },
+    scene,
+    world
+  );
   mazeClass.render();
-  // rendering the walls of the new maze 
+  // rendering the walls of the new maze
   for (let key in sceneObjects) {
-    if (key.includes('wall')) {
+    if (key.includes("wall")) {
       sceneObjects[key].render();
     }
   }
-  GSAP.gsap.to(sceneObjects.ball.body.position, {x: mazeClass.start.x, z: mazeClass.start.z, duration: 1});
+  GSAP.gsap.to(sceneObjects.ball.body.position, {
+    x: mazeClass.start.x,
+    z: mazeClass.start.z,
+    duration: 1,
+  });
 }
 
 // function onClick() {
@@ -118,16 +149,21 @@ async function init() {
 
   // load camera
   // camera.render();
-  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.01, 1000 );
+  camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.01,
+    1000
+  );
   camera.position.y = 65;
 
   // orbit controls
   controls = new OrbitControls(camera, renderer.domElement);
   controls.listenToKeyEvents(window); // optional
-  controls.minAzimuthAngle = - 0.05;
+  controls.minAzimuthAngle = -0.05;
   controls.maxAzimuthAngle = 0;
   controls.minPolarAngle = 0;
-  controls.maxPolarAngle =  Math.PI * 0.125;
+  controls.maxPolarAngle = Math.PI * 0.125;
   controls.minZoom = 100;
   controls.maxZoom = 200;
 
@@ -136,12 +172,25 @@ async function init() {
     lighting[key].render();
   }
 
+  setInterval(() => {
+    millis = Date.now() - start;
+    
+    console.log(time);
+
+    if (timerbool) {
+      time += 10;
+      clockDiv.innerHTML = `Time: ${(time / 1000).toFixed(2)}`
+    }
+    // console.log(`seconds elapsed = ${Math.floor(millis / 1000)}`);
+    // Expected output: "seconds elapsed = 2"
+  }, 10);
+
   // renderMaze(m);
   mazeClass.render();
   // console.log(sceneObjects.end.body.addEventListener('collide', function(e) {
   //   console.log('collide');
   // }));
-  addBall('ball',mazeClass.start);
+  addBall("ball", mazeClass.start);
 
   // renders all objects in scene
   for (let key in sceneObjects) {
@@ -172,14 +221,25 @@ async function init() {
     set Y(value) {
       mazeParams.Y = value;
     },
-  }
-  mazeFolder.add( mazeParams, 'algorithm', { DFS: 'dfs', Kruskal: 'kruskal', Eller: 'eller', Prims: 'prims', 'Recursive Backtracking': 'recurback' })
+  };
+  mazeFolder.add(mazeParams, "algorithm", {
+    DFS: "dfs",
+    Kruskal: "kruskal",
+    Eller: "eller",
+    Prims: "prims",
+    "Recursive Backtracking": "recurback",
+  });
   mazeFolder.add(mazeProps, "X", 5, 17, 1);
   mazeFolder.add(mazeProps, "Y", 5, 17, 1);
   // add a button to the maze folder
-  mazeFolder.add({ Generate: () => {
-    newMaze();
-  }}, "Generate");
+  mazeFolder.add(
+    {
+      Generate: () => {
+        newMaze();
+      },
+    },
+    "Generate"
+  );
 
   const lightingFolder = gui.addFolder("Lighting");
   const directionalLightFolder = lightingFolder.addFolder("Directional Light");
@@ -257,7 +317,6 @@ async function init() {
   directionalLightPositionFolder
     .add(propsDirectionalLightPosition, "Z", -100, 100)
     .step(0.01);
-  
 
   let cannonCylinder = new CANNON.Cylinder(1, 1, 0.5, 3);
   let cannonBody = new CANNON.Body({
@@ -266,31 +325,16 @@ async function init() {
     position: new CANNON.Vec3(0, 0, 0),
   });
   world.addBody(cannonBody);
-  
 
   // event listeners
   // window.addEventListener("click", onClick);
   window.addEventListener("mousemove", onMouseMove, false);
   window.addEventListener("keydown", (e) => {
-    if(e.key === 'o') {
-      // mazeClass.derender();
-      // mazeClass = new Maze({
-      //   dimensions: { x: X, y: Y },
-      //   algoType: 'eller',
-      //   start: { x: -40, z: -45 },
-      //   end: { x: 45, z: 40 },
-      // }, scene, world);
-      // mazeClass.render();
-      // // rendering the walls of the new maze 
-      // for (let key in sceneObjects) {
-      //   if (key.includes('wall')) {
-      //     sceneObjects[key].render();
-      //   }
-      // }
-      // GSAP.gsap.to(sceneObjects.ball.body.position, {x: mazeClass.start.x, z: mazeClass.start.z, duration: 1});      
+    if (e.key === "o") {
       newMaze();
-    }
-    else {
+    } else if (e.key === "p") {
+      timerbool = !timerbool;
+    } else {
       setKey(e, true);
     }
   });
