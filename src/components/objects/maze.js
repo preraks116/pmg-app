@@ -131,16 +131,16 @@ class Maze {
         z += 5;
       }
     }
-    // addObject(`end`, Box, {
-    //     position: { x: this.end.x, y: 1, z: this.end.z },
-    //     color: 0xff0000,
-    //     dimension: { x: 2, y: 1, z: 2 },
-    //     speed: 1,
-    //     mass: 0,
-    //     linearDamping: 0.3,
-    //     type: "end",
-    //     // textures: textures.brick,
-    // });
+    addObject(`end`, Box, {
+        position: { x: this.end.x, y: 1, z: this.end.z },
+        color: 0xff0000,
+        dimension: { x: 2, y: 1, z: 2 },
+        speed: 1,
+        mass: 0,
+        linearDamping: 0.3,
+        type: "end",
+        // textures: textures.brick,
+    });
     // console.log(wallSeed)
     // convert wallSeed to base 36
     // convert seed to base 36
@@ -170,6 +170,7 @@ class Maze {
         }
       }
     }
+    removeObject(`end`);
   }
   display(m) {
     // console.log("hi")

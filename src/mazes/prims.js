@@ -60,7 +60,8 @@ function primsMaze(x, y) {
       here = path.pop();
     }
   }
-
+  // change the last vertical wall to be a empty space
+  horiz[x - 1][y - 1] = true;
   return { verti: verti, horiz: horiz };
 }
 

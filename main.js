@@ -94,6 +94,8 @@ function newMaze() {
       sceneObjects[key].render();
     }
   }
+  // render the end point
+  sceneObjects.end.render();
   GSAP.gsap.to(sceneObjects.ball.body.position, {
     x: mazeClass.start.x,
     z: mazeClass.start.z,
@@ -172,10 +174,11 @@ async function init() {
     lighting[key].render();
   }
 
+  // timer
   setInterval(() => {
     millis = Date.now() - start;
     
-    console.log(time);
+    // console.log(time);
 
     if (timerbool) {
       time += 10;
@@ -228,6 +231,7 @@ async function init() {
     Eller: "eller",
     Prims: "prims",
     "Recursive Backtracking": "recurback",
+    Aldous: "aldous",
   });
   mazeFolder.add(mazeProps, "X", 5, 17, 1);
   mazeFolder.add(mazeProps, "Y", 5, 17, 1);
@@ -330,10 +334,16 @@ async function init() {
   // window.addEventListener("click", onClick);
   window.addEventListener("mousemove", onMouseMove, false);
   window.addEventListener("keydown", (e) => {
+    if(!timerbool) {
+      timerbool = true;
+    }
     if (e.key === "o") {
       newMaze();
     } else if (e.key === "p") {
       timerbool = !timerbool;
+    } else if (e.key === "r") {
+      time = 0;
+      clockDiv.innerHTML = `Time: ${(time / 1000).toFixed(2)}`;
     } else {
       setKey(e, true);
     }

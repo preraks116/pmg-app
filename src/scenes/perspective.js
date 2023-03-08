@@ -50,11 +50,13 @@ function addBall(id, position) {
         angularDamping: 0.9,
         textures: textures.ball,
         type: "player",
-        speed: 5
+        speed: 12
     })
 }
 
 function removeObject(id) {
+    if (!checkObject(id)) return;
+
     sceneObjects[id].derender();
     delete sceneObjects[id];
 }

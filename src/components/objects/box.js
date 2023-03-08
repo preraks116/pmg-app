@@ -59,6 +59,13 @@ class Box {
             (box.max.y - box.min.y)/2, 
             (box.max.z - box.min.z)/2
         )));
+
+        if(this.type === 'end') {
+            // add collision event listener
+            this.body.addEventListener('collide', (e) => {
+                console.log(e);
+            })
+        }
         // this.body.addShape(new CANNON.Sphere(this.dimension.x), new CANNON.Vec3(0, 1, 0));
         this.world.addBody(this.body);
     }

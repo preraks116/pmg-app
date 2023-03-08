@@ -58,8 +58,8 @@ class Ball {
         if(this.type === 'player') {
             for(let key in keyDict) {
                 if(keyDict[key].pressed && this.body) {
-                    this.body.velocity.x = -1*this.speed*keyDict[key].x;
-                    this.body.velocity.z = -1*this.speed*keyDict[key].z;
+                    this.body.velocity.x = -this.speed*keyDict[key].x;
+                    this.body.velocity.z = -this.speed*keyDict[key].z;
                 }
             }
         }
