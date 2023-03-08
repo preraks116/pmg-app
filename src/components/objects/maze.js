@@ -25,7 +25,7 @@ class Maze {
     this.world = world;
 
     this.getAlgo(this.dimensions);
-    this.display(this.algo);
+    // this.display(this.algo);
     // console.log(this.algo)
   }
   getAlgo(dimensions) {
@@ -48,22 +48,21 @@ class Maze {
     let seed = "";
     seed += paddedX;
     seed += paddedY;
-    // console.log(seed);
-    console.log("x:", this.dimensions.x, paddedX);
-    console.log("y:", this.dimensions.y, paddedY);
+
+    // console.log("x:", this.dimensions.x, paddedX);
+    // console.log("y:", this.dimensions.y, paddedY);
     let wallSeed = "";
-    // console.log(mSize, lineSize);
+    // console.log(this.algo)
+    console.log(this.text)
     let z = -40;
     let x;
     for (let i = 0; i < mSize; i++) {
       if (i % 2 == 0) {
         x = -40;
         for (let j = 0; j < lineSize - 1; j += 4) {
-          console.log(i,j, x);
+          // console.log(i,j, x);
           if (this.text[i][j + 1] === "-") {
-            // seed += '1'
             wallSeed += "1";
-            // console.log(i,j);
             addObject(`wall${i}${j}`, Box, {
               position: { x: x, y: 1, z: z - 2.5 },
               color: 0xff0000,
@@ -74,29 +73,15 @@ class Maze {
               type: "wall",
               textures: textures.brick,
             });
-            // sceneObjects[`wall${i}${j}`] = new Box({
-            //     position: { x: x, y: 1, z: z - 2.5 },
-            //     color: 0xff0000,
-            //     dimension: { x: 5, y: 5, z: 0.5 },
-            //     speed: 1,
-            //     mass: 0,
-            //     linearDamping: 0.3,
-            //     type: "wall",
-            //     textures: textures.brick,
-            // }, scene, world);
           } else {
-            // seed += '0'
             wallSeed += "0";
           }
           x += 5;
         }
       } else {
         x = -45;
-        // for(let j = 0; j < 1; j+=4) {
         for (let j = 0; j < lineSize; j += 4) {
           if (this.text[i][j] === "|") {
-            // console.log(i,j);
-            // seed += '1'
             wallSeed += "1";
             addObject(`wall${i}${j}`, Box, {
               position: { x: x + 2.5, y: 1, z: z },
@@ -108,22 +93,7 @@ class Maze {
               type: "wall",
               textures: textures.brick,
             });
-            // sceneObjects[`wall${i}${j}`] = new Box(
-            //   {
-            //     position: { x: x + 2.5, y: 1, z: z },
-            //     color: 0xff0000,
-            //     dimension: { x: 0.5, y: 5, z: 5 },
-            //     speed: 1,
-            //     mass: 0,
-            //     linearDamping: 0.3,
-            //     type: "wall",
-            //     textures: textures.brick,
-            //   },
-            //   scene,
-            //   world
-            // );
           } else {
-            // seed += '0'
             wallSeed += "0";
           }
           x += 5;
@@ -139,24 +109,18 @@ class Maze {
         mass: 0,
         linearDamping: 0.3,
         type: "end",
-        // textures: textures.brick,
     });
-    // console.log(wallSeed)
-    // convert wallSeed to base 36
-    // convert seed to base 36
     const seedBase36 = parseInt(seed, 2).toString(36);
-    console.log("seed in base 36:", seedBase36);
+    // console.log("seed in base 36:", seedBase36);
 
     const wallSeedBase36 = parseInt(wallSeed, 2).toString(36);
-    console.log("wallseed in base 36:", wallSeedBase36);
-    // const hexSeed = parseInt(seed, 2).toString(36);
-    // console.log(hexSeed);
+    // console.log("wallseed in base 36:", wallSeedBase36);
 
     const zeroCount = (wallSeedBase36.match(/0+$/) || [])[0].length;
-    console.log("number of zeros at the end:", zeroCount);
+    // console.log("number of zeros at the end:", zeroCount);
 
     const trimmedSeed = wallSeedBase36.slice(0, -zeroCount);
-    console.log("after removing zeros:", trimmedSeed);
+    // console.log("after removing zeros:", trimmedSeed);
 
     const finalSeed = seedBase36 + ":" + trimmedSeed + ":" + zeroCount;
 
@@ -173,31 +137,84 @@ class Maze {
     removeObject(`end`);
   }
   display(m) {
-    // console.log("hi")
-    // var text = [];
+
     for (var j = 0; j < this.dimensions.x * 2 + 1; j++) {
       var line = [];
       if (0 == j % 2)
-        for (var k = 0; k < this.dimensions.y * 4 + 1; k++)
-          if (0 == k % 4) line[k] = "x";
-          else if (j > 0 && m.verti[j / 2 - 1][Math.floor(k / 4)])
+        for (var k = 0; k < this.dimensions.y * 4 + 1; k++) {
+          if (0 == k % 4) {
+            line[k] = "x";
+          }
+          else if (j > 0 && m.verti[j / 2 - 1][Math.floor(k / 4)]) {
             line[k] = " ";
-          else line[k] = "-";
+          }
+          else {
+            line[k] = "-";
+          }
+        }
       else
         for (var k = 0; k < this.dimensions.y * 4 + 1; k++)
           if (0 == k % 4)
             if (k > 0 && m.horiz[(j - 1) / 2][k / 4 - 1]) line[k] = " ";
             else line[k] = "|";
           else line[k] = " ";
-      // for creating openings in the first and the last line
-      if (0 == j) line[1] = line[2] = line[3] = " ";
-      if (this.dimensions.x * 2 - 1 == j) line[4 * m.y] = " ";
-      // console.log(line);
-      // text.push(line.join("") + "\r\n");
       this.text.push(line);
     }
-    // this.text = text;
-    // return { text: text, x: m.x, y: m.y };
+  }
+  render2() {
+    for (var j = 0; j < this.dimensions.x * 2 + 1; j++) {
+      if(j % 2 == 0) {
+        for (var k = 0; k < this.dimensions.y; k++) {
+          if(!(j > 0 && this.algo.verti[j / 2 - 1][k])) {
+            // horizontal wall
+            addObject(`horiz${j}${k}`, Box, {
+              position: { x: -40 + k * 5, y: 1, z: -40 + (j - 1) * 2.5 },
+              color: 0xff0000,
+              dimension: { x: 5, y: 5, z : 0.5 },
+              speed: 1,
+              mass: 0,
+              linearDamping: 0.3,
+              type: "wall",
+              textures: textures.brick,
+            });
+          }
+        }
+      }
+      else {
+        for (var k = 0; k < this.dimensions.y; k++) {
+          if(k == this.dimensions.y || !(k > 0 && this.algo.horiz[(j - 1) / 2][k - 1])) {
+            // vertical wall
+            addObject(`verti${j}${k}`, Box, {
+              position: { x: -45 + k * 5 + 2.5, y: 1, z: -40 + j * 2.5 - 2.5 },
+              color: 0xff0000,
+              dimension: { x: 0.5, y: 5, z: 5 },
+              speed: 1,
+              mass: 0,
+              linearDamping: 0.3,
+              type: "wall",
+              textures: textures.brick,
+            });
+          }
+        }
+      }
+    }
+    // making the start
+    
+    // fill up the entire last vertical wall
+    for (var k = 0; k < this.dimensions.y; k++) {
+      addObject(`vertilast${k}`, Box, {
+        position: { x: -45 + this.dimensions.y * 5 + 2.5, y: 1, z: -40 + k * 5 },
+        color: 0xff0000,
+        dimension: { x: 0.5, y: 5, z: 5 },
+        speed: 1,
+        mass: 0,
+        linearDamping: 0.3,
+        type: "wall",
+        textures: textures.brick,
+      });
+    }
+    removeObject(`horiz${0}${0}`);
+    removeObject(`vertilast${this.dimensions.y - 1}`);
   }
 }
 

@@ -189,7 +189,7 @@ async function init() {
   }, 10);
 
   // renderMaze(m);
-  mazeClass.render();
+  mazeClass.render2();
   // console.log(sceneObjects.end.body.addEventListener('collide', function(e) {
   //   console.log('collide');
   // }));
