@@ -5,14 +5,9 @@ import * as CANNON from "cannon-es";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
-import { Ball } from "./src/components/objects/ball";
-import { mazes } from "./src/mazes/mazes";
-import { Vector3 } from "three";
-import { textures } from "./src/utils/textures";
 import { Maze } from "./src/components/objects/maze";
 import { setKey } from "./src/utils/keyControls";
-import { setZoom } from "./src/components/camera/orthographicCamera";
-import { Box } from "./src/components/objects/box";
+import { checkObject } from "./src/scenes/perspective";
 import * as GSAP from "gsap";
 import {
   sceneObjects,
@@ -39,8 +34,8 @@ let timerbool = false;
 
 let mazeParams = {
   algorithm: "dfs",
-  X: 17,
-  Y: 17,
+  X: 5,
+  Y: 7,
 };
 
 // This example takes 2 seconds to run
@@ -77,6 +72,7 @@ function onMouseMove(event) {
 
 function newMaze() {
   mazeClass.derender();
+  // console.log(mazeParams);  
   mazeClass = new Maze(
     {
       dimensions: { x: mazeParams.X, y: mazeParams.Y },
@@ -87,15 +83,13 @@ function newMaze() {
     scene,
     world
   );
+  mazeClass.generate();
   mazeClass.render();
-  // rendering the walls of the new maze
-  for (let key in sceneObjects) {
-    if (key.includes("wall")) {
-      sceneObjects[key].render();
-    }
-  }
+
   // render the end point
-  sceneObjects.end.render();
+  // sceneObjects.end.render();
+
+
   GSAP.gsap.to(sceneObjects.ball.body.position, {
     x: mazeClass.start.x,
     z: mazeClass.start.z,
@@ -188,8 +182,11 @@ async function init() {
     // Expected output: "seconds elapsed = 2"
   }, 10);
 
-  // renderMaze(m);
-  mazeClass.render2();
+
+  mazeClass.generate();
+  // mazeClass.generate();
+
+
   // console.log(sceneObjects.end.body.addEventListener('collide', function(e) {
   //   console.log('collide');
   // }));
@@ -339,6 +336,8 @@ async function init() {
     }
     if (e.key === "o") {
       newMaze();
+    } else if(e.key === 't') {
+      mazeClass.derender();
     } else if (e.key === "p") {
       timerbool = !timerbool;
     } else if (e.key === "r") {

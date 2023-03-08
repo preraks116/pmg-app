@@ -13,13 +13,13 @@ class Box {
         this.clickColor = props.clickColor ? props.clickColor : 0xf00000;
         this.scene = scene;
         this.dimension = props.dimension;
-        this.speed = props.speed
+        this.speed = props.speed ? props.speed : 1;
         this.world = world;
-        this.mass = props.mass;
+        this.mass = props.mass ? props.mass : 0;
         this.type = props.type;
         this.isHoverable = props.isHoverable ? props.isHoverable : false;
         this.isClickable = props.isClickable ? props.isClickable : false;
-        this.linearDamping = props.linearDamping
+        this.linearDamping = props.linearDamping ? props.linearDamping : 0.3;
         this.angularDamping = props.angularDamping
         this.material = new CANNON.Material();
         this.textures = props.textures;
