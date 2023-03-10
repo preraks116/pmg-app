@@ -365,13 +365,13 @@ async function init() {
     .add(propsDirectionalLightPosition, "Z", -100, 100)
     .step(0.01);
 
-  let cannonCylinder = new CANNON.Cylinder(1, 1, 0.5, 3);
-  let cannonBody = new CANNON.Body({
-    mass: 0,
-    shape: cannonCylinder,
-    position: new CANNON.Vec3(0, 0, 0),
-  });
-  world.addBody(cannonBody);
+  // let cannonCylinder = new CANNON.Cylinder(1, 1, 0.5, 3);
+  // let cannonBody = new CANNON.Body({
+  //   mass: 0,
+  //   shape: cannonCylinder,
+  //   position: new CANNON.Vec3(0, 0, 0),
+  // });
+  // world.addBody(cannonBody);
 
   // event listeners
   // window.addEventListener("click", onClick);

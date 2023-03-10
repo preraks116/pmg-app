@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { Box } from "./box";
+import { Puck } from "./puck";
 import { mazes } from "../../mazes/mazes";
 import {
   addObject,
@@ -38,6 +39,7 @@ class Maze {
 
     // calculate ball coordinates based on maze dimensions
     this.ballCoord = this.getBallCoords();
+    this.i = 1
 
   }
   getBallCoords() {
@@ -60,7 +62,27 @@ class Maze {
       }
     }
   }
-  generate() {
+  generatePucks() {
+    console.log(this.dimensions.x, this.dimensions.y)
+    for (let i = 0; i < this.dimensions.x; i++) {
+      for (let j = 0; j < this.dimensions.y; j++) {
+        let puck = addObject(`puck(${i},${j})`, Puck, {
+          position: { x: -40 + 5 * j, y: 1, z: -40 + 5 * i },
+          radius: 1,
+          height: 0.5,
+          coord: { x: i, z: j },
+          radialSegments: 3,
+        });
+        puck.body.addEventListener("collide", (e) => {
+          // console .log coord
+          console.log(puck.coord);
+          this.path.push(puck.coord);
+        });
+      }
+    }
+    // addObject("puck(0,0)", Puck, { position: { x: this.ballCoord.x, y: 1, z: this.ballCoord.z }});
+  }
+  generateWalls() {
     this.display(this.algo);
 
     const mSize = this.text.length;
@@ -98,7 +120,10 @@ class Maze {
     if (this.startCoord.type != "random") {
       removeObject(`${this.endCoord.type}(${this.endCoord.x},${this.endCoord.z})`); 
     }
-
+  }
+  generate() {
+    this.generateWalls();
+    this.generatePucks();
   }
   render() {
     for (var j = 0; j < this.dimensions.x + 1; j++) {
@@ -108,6 +133,9 @@ class Maze {
         }
         if (checkObject(`horiz(${j},${k})`)) {
           sceneObjects[`horiz(${j},${k})`].render();
+        }
+        if(checkObject(`puck(${j},${k})`)) {
+          sceneObjects[`puck(${j},${k})`].render();
         }
       }
     }
@@ -126,7 +154,6 @@ class Maze {
     //   }
     // }
 
-
     for (var j = 0; j < 18; j++) {
       for (var k = 0; k < 18; k++) {
         if (checkObject(`verti(${j},${k})`)) {
@@ -134,6 +161,9 @@ class Maze {
         }
         if (checkObject(`horiz(${j},${k})`)) {
           removeObject(`horiz(${j},${k})`);
+        }
+        if(checkObject(`puck(${j},${k})`)) {
+          removeObject(`puck(${j},${k})`);
         }
       }
     }
@@ -163,21 +193,7 @@ class Maze {
   }
   update() {
     if(this.endCoord.type == 'random') {
-      // randomly choose the type of end point
-      let type = Math.floor(Math.random() * 4);
-      if (type == 0) {
-        this.endCoord = { type: "horiz", x: Math.floor(Math.random() * this.dimensions.x), z: this.dimensions.y };
-      }
-      if (type == 1) {
-        this.endCoord = { type: "horiz", x: Math.floor(Math.random() * this.dimensions.x), z: 0 };
-      }
-      if (type == 2) {
-        this.endCoord = { type: "verti", x: this.dimensions.x, z: Math.floor(Math.random() * this.dimensions.y) };
-      }
-      if (type == 3) {
-        this.endCoord = { type: "verti", x: 0, z: Math.floor(Math.random() * this.dimensions.y) };
-      }
-      console.log(this.endCoord)
+      // console.log("hi")
     }
   }
 

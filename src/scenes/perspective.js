@@ -34,6 +34,7 @@ function addObject(id, cl, props) {
     const obj = new cl(props, scene, world);
     sceneObjects[id] = obj;
     // obj.render();
+    return obj;
 }
 
 function addBall(id, position) {
