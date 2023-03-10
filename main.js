@@ -23,20 +23,25 @@ import { maze } from "./src/mazes/dfs";
 
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
-// will eventually get x and y from user input
-let X = 17;
-let Y = 17;
-
 const clockDiv = document.getElementById("clock");
 let time = 0;
 let millis;
 let timerbool = false;
 
-let mazeParams = {
-  algorithm: "dfs",
-  X: 5,
-  Y: 7,
-};
+// let mazeParams = {
+//   algorithm: "dfs",
+//   X: 5,
+//   Y: 7,
+//   start: { type: "horiz", x: 0, z: 1 },
+//   end: { type: "verti", x: 4, z: 7 },
+// };
+
+let mazeParams2 = {
+  dimensions: { x: 17, y: 17 },
+  algoType: "dfs",
+  start: { type: "horiz", x: 0, z: 0 },
+  end: { type: "verti", x: 16, z: 17 },
+}
 
 // This example takes 2 seconds to run
 const start = Date.now();
@@ -44,16 +49,7 @@ const start = Date.now();
 console.log("starting timer...");
 // Expected output: "starting timer..."
 
-let mazeClass = new Maze(
-  {
-    dimensions: { x: mazeParams.X, y: mazeParams.Y },
-    algoType: mazeParams.algorithm,
-    start: { x: -40, z: -45 },
-    end: { x: 45 - 17 + X, z: 40 - 17 + Y },
-  },
-  scene,
-  world
-);
+let mazeClass = new Maze(mazeParams2, scene, world);
 
 let controls, stats;
 let intersects = [];
@@ -71,18 +67,10 @@ function onMouseMove(event) {
 }
 
 function newMaze() {
-  mazeClass.derender();
+  // console.log(mazeClass);
+  mazeClass.derender(mazeClass.dimensions.x, mazeClass.dimensions.y);
   // console.log(mazeParams);  
-  mazeClass = new Maze(
-    {
-      dimensions: { x: mazeParams.X, y: mazeParams.Y },
-      algoType: mazeParams.algorithm,
-      start: { x: -40, z: -45 },
-      end: { x: 45, z: 40 },
-    },
-    scene,
-    world
-  );
+  mazeClass = new Maze(mazeParams2, scene, world);
   mazeClass.generate();
   mazeClass.render();
 
@@ -91,8 +79,8 @@ function newMaze() {
 
 
   GSAP.gsap.to(sceneObjects.ball.body.position, {
-    x: mazeClass.start.x,
-    z: mazeClass.start.z,
+    x: mazeClass.ballCoord.x,
+    z: mazeClass.ballCoord.z,
     duration: 1,
   });
 }
@@ -115,17 +103,6 @@ function newMaze() {
 //     intersects[0].object.userData.onClick();
 //   }
 // }
-
-// sceneObjects[`wall${i}`] = new Box({
-//   position: { x: i, y: 1, z: -40 },
-//   color: 0xff0000,
-//   dimension: { x: 5, y: 5, z: 0.5 },
-//   speed: 1,
-//   mass: 0,
-//   linearDamping: 0.3,
-//   type: "wall",
-//   textures: textures.brick
-// }, scene, world);
 
 async function init() {
   // initialization
@@ -184,13 +161,12 @@ async function init() {
 
 
   mazeClass.generate();
-  // mazeClass.generate();
 
 
   // console.log(sceneObjects.end.body.addEventListener('collide', function(e) {
   //   console.log('collide');
   // }));
-  addBall("ball", mazeClass.start);
+  addBall("ball", mazeClass.ballCoord);
 
   // renders all objects in scene
   for (let key in sceneObjects) {
@@ -208,21 +184,7 @@ async function init() {
   // add gui
   const gui = new GUI();
   const mazeFolder = gui.addFolder("Maze");
-  const mazeProps = {
-    get X() {
-      return mazeParams.X;
-    },
-    set X(value) {
-      mazeParams.X = value;
-    },
-    get Y() {
-      return mazeParams.Y;
-    },
-    set Y(value) {
-      mazeParams.Y = value;
-    },
-  };
-  mazeFolder.add(mazeParams, "algorithm", {
+  mazeFolder.add(mazeParams2, "algoType", {
     DFS: "dfs",
     Kruskal: "kruskal",
     Eller: "eller",
@@ -230,12 +192,96 @@ async function init() {
     "Recursive Backtracking": "recurback",
     Aldous: "aldous",
   });
-  mazeFolder.add(mazeProps, "X", 5, 17, 1);
-  mazeFolder.add(mazeProps, "Y", 5, 17, 1);
+  const sizeFolder = mazeFolder.addFolder("Size");
+  const mazeProps = {
+    get X() {
+      return mazeParams2.dimensions.x;
+    },
+    set X(value) {
+      mazeParams2.dimensions.x = value;
+    },
+    get Y() {
+      return mazeParams2.dimensions.y;
+    },
+    set Y(value) {
+      mazeParams2.dimensions.y = value;
+    },
+  };
+  
+  sizeFolder.add(mazeProps, "X", 5, 17, 1);
+  sizeFolder.add(mazeProps, "Y", 5, 17, 1);
+  sizeFolder.onChange(function(v){
+    // console.log(v)
+    // reload the startFolder
+    startX.destroy();
+    startY.destroy();
+    startX = startFolder.add(mazeParams2.start, "x", 0, mazeParams2.dimensions.x, 1);
+    startY = startFolder.add(mazeParams2.start, "z", 0, mazeParams2.dimensions.y, 1);
+
+    // reload the endFolder
+    endX.destroy();
+    endY.destroy();
+    endX = endFolder.add(mazeParams2.end, "x", 0, mazeParams2.dimensions.x, 1);
+    endY = endFolder.add(mazeParams2.end, "z", 0, mazeParams2.dimensions.y, 1);
+  })
+  const startFolder = mazeFolder.addFolder("Start");
+  startFolder.add(mazeParams2.start, "type" , { Vertical: "verti", Horizontal: "horiz" });
+  let startX = startFolder.add(mazeParams2.start, "x", 0, mazeParams2.dimensions.x, 1);
+  let startY = startFolder.add(mazeParams2.start, "z", 0, mazeParams2.dimensions.y, 1);
+
+  const endFolder = mazeFolder.addFolder("End");
+  let endSelect = endFolder.add(mazeParams2.end, "type" , { Vertical: "verti", Horizontal: "horiz", Random: "random" });
+  let endX = endFolder.add(mazeParams2.end, "x", 0, mazeParams2.dimensions.x, 1);
+  let endY = endFolder.add(mazeParams2.end, "z", 0, mazeParams2.dimensions.y, 1);
+  endSelect.onChange(function(v){
+    if(v == "random") {
+      endX.disable();
+      endY.disable();
+    }
+    else {
+      endX.enable();
+      endY.enable();
+    }
+  })
+
   // add a button to the maze folder
   mazeFolder.add(
     {
       Generate: () => {
+        // check if start coordinates are valid
+        let starValue = 1;
+        let endValue = 1;
+        // for valid start 
+        if(mazeParams2.start.type == "verti"){
+          if(!((mazeParams2.start.z == 0 || mazeParams2.start.z == mazeParams2.dimensions.y) && (mazeParams2.start.x < mazeParams2.dimensions.x))) {
+            starValue = 0
+          }
+        }
+        else {
+          if(!((mazeParams2.start.x == 0 || mazeParams2.start.x == mazeParams2.dimensions.x) && (mazeParams2.start.z < mazeParams2.dimensions.y))) {
+            starValue = 0
+          }
+        }
+        // for valid end
+        if(mazeParams2.end.type == "verti"){
+          if(!((mazeParams2.end.z == 0 || mazeParams2.end.z == mazeParams2.dimensions.y) && (mazeParams2.end.x < mazeParams2.dimensions.x))) {
+            endValue = 0
+          }
+        }
+        else {
+          if(!((mazeParams2.end.x == 0 || mazeParams2.end.x == mazeParams2.dimensions.x) && (mazeParams2.end.z < mazeParams2.dimensions.y))) {
+            endValue = 0
+          }
+        }
+
+        if (!starValue) {
+          alert("Invalid start coordinates");
+          return;
+        }
+        if (!endValue && endSelect.getValue() != "random") {
+          alert("Invalid end coordinates");
+          return;
+        }
         newMaze();
       },
     },
@@ -378,15 +424,15 @@ function animate() {
   onHover();
   stats.begin();
   renderer.render(scene, camera);
-  // console.log(mazeParams);
   stats.end();
   resetFromHover();
-  // controls.update();
+  // console.log(mazeClass)
   world.step(1 / 60);
 
   for (let key in sceneObjects) {
     sceneObjects[key].update();
   }
+  mazeClass.update();
   cannonDebugger.update();
 }
 

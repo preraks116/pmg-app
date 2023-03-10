@@ -32,6 +32,33 @@ class Maze {
     this.algo = mazes[this.algoType](this.dimensions.x, this.dimensions.y);
     this.horiz = this.algo.horiz;
     this.verti = this.algo.verti;
+
+    this.startCoord = this.start;
+    this.endCoord = this.end;
+
+    // calculate ball coordinates based on maze dimensions
+    this.ballCoord = this.getBallCoords();
+
+  }
+  getBallCoords() {
+    if(this.startCoord.type == "horiz") {
+      if(this.startCoord.x == 0 && this.startCoord.z < this.dimensions.y) {
+        return { x: -40 + 5 * this.startCoord.z, z: -45 + 2.5 * this.startCoord.x };
+      } else if (this.startCoord.x == this.dimensions.x) {
+        return { x: -40 + 5 * this.startCoord.z, z: -45 + 5 * this.startCoord.x + 5 };
+      } else {
+        return { x: -40, z: -45 };
+      }
+    }
+    else {
+      if(this.startCoord.z == 0) {
+        return { x: -40 + 5 * this.startCoord.z - 5, z: -45 + 5 * this.startCoord.x + 5 };
+      } else if (this.startCoord.z == this.dimensions.y) {
+        return { x: -40 + 5 * this.startCoord.z, z: -45 + 5 * this.startCoord.x + 5 };
+      } else {
+        return { x: -40, z: -45 };
+      }
+    }
   }
   generate() {
     this.display(this.algo);
@@ -44,32 +71,34 @@ class Maze {
         for (let j = 0; j < lineSize - 1; j += 4) {
           if (this.text[i][j + 1] === "-") {
             // console.log(i/2, j/4);
-            addObject(`horiz(${i/2},${j/4})`, Box, {
-              position: { x: -40 + 5*(j/4), y: 1, z: -40 + (i-1)*2.5 },
+            addObject(`horiz(${i / 2},${j / 4})`, Box, {
+              position: { x: -40 + 5 * (j / 4), y: 1, z: -40 + (i - 1) * 2.5 },
               dimension: { x: 5, y: 5, z: 0.5 },
               type: "wall",
               textures: textures.brick,
             });
-          } 
+          }
         }
       } else {
-        let x = -45;
         for (let j = 0; j < lineSize; j += 4) {
           if (this.text[i][j] === "|") {
-            console.log((i-1)/2,j/4, x);
-            addObject(`verti(${(i-1)/2},${j/4})`, Box, {
-              position: { x: x + 2.5, y: 1, z: -40 + (i-1)*2.5 },
+            addObject(`verti(${(i - 1) / 2},${j / 4})`, Box, {
+              position: { x: -45 + 5 * (j / 4) + 2.5, y: 1, z: -40 + (i - 1) * 2.5 },
               dimension: { x: 0.5, y: 5, z: 5 },
               type: "wall",
               textures: textures.brick,
             });
-          } 
-          x += 5;
+          }
         }
       }
     }
-    removeObject(`horiz(${0},${0})`);
-    removeObject(`verti(${this.dimensions.x - 1},${this.dimensions.y})`);
+    // adding starting and ending point
+    removeObject(`${this.startCoord.type}(${this.startCoord.x},${this.startCoord.z})`); 
+    // removeObject(`verti(${this.dimensions.x - 1},${this.dimensions.y})`);
+    if (this.startCoord.type != "random") {
+      removeObject(`${this.endCoord.type}(${this.endCoord.x},${this.endCoord.z})`); 
+    }
+
   }
   render() {
     for (var j = 0; j < this.dimensions.x + 1; j++) {
@@ -83,9 +112,23 @@ class Maze {
       }
     }
   }
-  derender() {
-    for (var j = 0; j < this.dimensions.x + 1; j++) {
-      for (var k = 0; k < this.dimensions.y + 1; k++) {
+  derender(x,y) {
+    ///////// NEED TO FIX X AND Y VALUES CHANGE WHEN RESIZING BEFORE DERENDERING
+    // console.log(x,y)
+    // for (var j = 0; j < x + 1; j++) {
+    //   for (var k = 0; k < y + 1; k++) {
+    //     if (checkObject(`verti(${j},${k})`)) {
+    //       removeObject(`verti(${j},${k})`);
+    //     }
+    //     if (checkObject(`horiz(${j},${k})`)) {
+    //       removeObject(`horiz(${j},${k})`);
+    //     }
+    //   }
+    // }
+
+
+    for (var j = 0; j < 18; j++) {
+      for (var k = 0; k < 18; k++) {
         if (checkObject(`verti(${j},${k})`)) {
           removeObject(`verti(${j},${k})`);
         }
@@ -118,8 +161,27 @@ class Maze {
       this.text.push(line);
     }
   }
+  update() {
+    if(this.endCoord.type == 'random') {
+      // randomly choose the type of end point
+      let type = Math.floor(Math.random() * 4);
+      if (type == 0) {
+        this.endCoord = { type: "horiz", x: Math.floor(Math.random() * this.dimensions.x), z: this.dimensions.y };
+      }
+      if (type == 1) {
+        this.endCoord = { type: "horiz", x: Math.floor(Math.random() * this.dimensions.x), z: 0 };
+      }
+      if (type == 2) {
+        this.endCoord = { type: "verti", x: this.dimensions.x, z: Math.floor(Math.random() * this.dimensions.y) };
+      }
+      if (type == 3) {
+        this.endCoord = { type: "verti", x: 0, z: Math.floor(Math.random() * this.dimensions.y) };
+      }
+      console.log(this.endCoord)
+    }
+  }
 
-  ////// generate function without using display function - doesnt work ///////
+  ////// generate function without using display function - doesnt work on clicking generate button ///////
   // generate() {
   //   for (var j = 0; j < this.dimensions.x * 2 + 1; j++) {
   //     if (j % 2 == 0) {
