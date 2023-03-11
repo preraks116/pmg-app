@@ -18,8 +18,12 @@ class Ball {
         this.isClickable = props.isClickable ? props.isClickable : false;
         this.linearDamping = props.linearDamping
         this.angularDamping = props.angularDamping
-        this.material = new CANNON.Material();
         this.textures = props.textures;
+
+        const data = {
+            type: "player",
+        }
+        this.material = new CANNON.Material(JSON.stringify(data));
     }
     render() {
         // three js rendering

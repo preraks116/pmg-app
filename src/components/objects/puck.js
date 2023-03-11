@@ -10,12 +10,21 @@ class Puck {
         this.scene = scene;
         this.world = world;
 
+        const data = {
+            type: "puck",
+            coord: {
+                x: props.coord.x,
+                z: props.coord.z,
+            }
+        }
+        this.material = new CANNON.Material(JSON.stringify(data));
 
         this.body = new CANNON.Body({
             mass: 0,
             shape: new CANNON.Cylinder(this.radius, this.radius, this.height, this.radialSegments),
             position: new CANNON.Vec3(this.position.x, this.position.y, this.position.z),
             collisionResponse: false,
+            material: this.material
         });
     }
     render() {

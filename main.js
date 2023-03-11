@@ -395,6 +395,27 @@ async function init() {
   });
   window.addEventListener("resize", onWindowResize);
   window.addEventListener("keyup", (e) => setKey(e, false));
+
+  // collision detection listeners
+  world.addEventListener('beginContact', (e) => {
+      interactionHandler(e, 'beginContact');
+  });
+  world.addEventListener('endContact', (e) => {
+      interactionHandler(e, 'endContact');
+  });
+}
+
+function interactionHandler(e, type) {
+  const { bodyA, bodyB } = e;
+  // console.log(bodyA, bodyB);
+  if(!bodyA.material.name || !bodyB.material.name) return;
+  let dataA = JSON.parse(bodyA.material.name);
+  let dataB = JSON.parse(bodyB.material.name);
+
+  if(dataA.type === 'puck' || dataB.type === 'puck') {
+    mazeClass.addToPath(dataA, dataB, type);
+  }
+
 }
 
 function resetFromHover() {

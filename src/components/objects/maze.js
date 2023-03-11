@@ -9,7 +9,6 @@ import {
   removeObject,
   sceneObjects,
 } from "../../scenes/perspective";
-import { textures } from "../../utils/textures";
 
 class Maze {
   constructor(props, scene, world) {
@@ -62,25 +61,25 @@ class Maze {
       }
     }
   }
+  addToPath(dataA, dataB, type) {
+    if(type !== 'beginContact') return;
+    console.log("hi")
+    let puck = dataA.type === 'puck' ? dataA : dataB;
+    this.path.push(puck.coord);
+  }
   generatePucks() {
-    console.log(this.dimensions.x, this.dimensions.y)
+    // console.log(this.dimensions.x, this.dimensions.y)
     for (let i = 0; i < this.dimensions.x; i++) {
       for (let j = 0; j < this.dimensions.y; j++) {
-        let puck = addObject(`puck(${i},${j})`, Puck, {
+        addObject(`puck(${i},${j})`, Puck, {
           position: { x: -40 + 5 * j, y: 1, z: -40 + 5 * i },
-          radius: 1,
+          radius: 1.5,
           height: 0.5,
           coord: { x: i, z: j },
-          radialSegments: 3,
-        });
-        puck.body.addEventListener("collide", (e) => {
-          // console .log coord
-          console.log(puck.coord);
-          this.path.push(puck.coord);
+          radialSegments: 4,
         });
       }
     }
-    // addObject("puck(0,0)", Puck, { position: { x: this.ballCoord.x, y: 1, z: this.ballCoord.z }});
   }
   generateWalls() {
     this.display(this.algo);
@@ -97,7 +96,6 @@ class Maze {
               position: { x: -40 + 5 * (j / 4), y: 1, z: -40 + (i - 1) * 2.5 },
               dimension: { x: 5, y: 5, z: 0.5 },
               type: "wall",
-              textures: textures.brick,
             });
           }
         }
@@ -108,7 +106,6 @@ class Maze {
               position: { x: -45 + 5 * (j / 4) + 2.5, y: 1, z: -40 + (i - 1) * 2.5 },
               dimension: { x: 0.5, y: 5, z: 5 },
               type: "wall",
-              textures: textures.brick,
             });
           }
         }

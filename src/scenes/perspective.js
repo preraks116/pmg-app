@@ -68,21 +68,6 @@ function checkObject(id) {
 
 // dictionary of all objects
 const sceneObjects = {
-    // ball: new Ball({
-    //     // position: { x: -40, y: 1, z: -40 },
-    //     position: { x: -40, y: 1, z: -45 },
-    //     color: 0xff0000,
-    //     radius: 0.5,
-    //     mass: 1,
-    //     speed: new Vector3(0, 0, 0),
-    //     isHoverable: true,
-    //     isClickable: true,
-    //     linearDamping: 0.9,
-    //     angularDamping: 0.9,
-    //     textures: textures.ball,
-    //     type: "player",
-    //     speed: 5
-    // }, scene, world),
     plane: new Plane({
         scene: scene,
         position: { x: 0, y: -0.5, z: 0 },
@@ -102,46 +87,26 @@ const sceneObjects = {
 for (let i = -45; i <= 45; i += 5) {
     sceneObjects[`boundaryX2${i}`] = new Box({
         position: { x: -47.5, y: 1, z: i },
-        color: 0xff0000,
         dimension: { x: 0.5, y: 5, z: 5 },
-        speed: 1,
-        mass: 0,
-        linearDamping: 0.3,
         type: "wall",
-        textures: textures.brick
     }, scene, world);
 
     sceneObjects[`boundaryZ1${i}`] = new Box({
         position: { x: i, y: 1, z: -50 + 2.5 },
-        color: 0xff0000,
         dimension: { x: 5, y: 5, z: 0.5 },
-        speed: 1,
-        mass: 0,
-        linearDamping: 0.3,
         type: "wall",
-        textures: textures.brick
     }, scene, world);
 
     sceneObjects[`boundaryZ2${i}`] = new Box({
         position: { x: i, y: 1, z: 45 + 2.5 },
-        color: 0xff0000,
         dimension: { x: 5, y: 5, z: 0.5 },
-        speed: 1,
-        mass: 0,
-        linearDamping: 0.3,
         type: "wall",
-        textures: textures.brick
     }, scene, world);
 
     sceneObjects[`boundaryX1${i}`] = new Box({
         position: { x: 50 - 2.5, y: 1, z: i },
-        color: 0xff0000,
         dimension: { x: 0.5, y: 5, z: 5 },
-        speed: 1,
-        mass: 0,
-        linearDamping: 0.3,
         type: "wall",
-        textures: textures.brick
     }, scene, world);
 }
 
@@ -174,16 +139,5 @@ const lighting = {
 // for (let key in collisions) {
 //     world.addContactMaterial(collisions[key]);
 // }
-
-// camera
-// const camera = new PerspCamera({
-//     position: { x: 0, y: 65, z: 0 },
-//     lookAt: new Vector3(0, 0, 0),
-//     up: { x: 0, y: 1, z: 0 },
-//     aspect: window.innerWidth / window.innerHeight,
-//     near: 0.1,
-//     far: 1000,
-//     fov: 75
-// }, scene);
 
 export { sceneObjects, addObject, removeObject, checkObject, addBall, lighting, scene, world, cannonDebugger };

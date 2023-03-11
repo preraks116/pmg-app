@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { keyDict } from '../../utils/keyControls';
-import { EventDispatcher } from 'three';
+import { textures } from '../../utils/textures';
 
 
 class Box {
@@ -21,9 +20,13 @@ class Box {
         this.isClickable = props.isClickable ? props.isClickable : false;
         this.linearDamping = props.linearDamping ? props.linearDamping : 0.3;
         this.angularDamping = props.angularDamping
-        this.material = new CANNON.Material();
-        this.textures = props.textures;
+        this.textures = props.textures ? props.textures : textures.brick;
         
+        const data = {
+            type: this.type
+        }
+        this.material = new CANNON.Material(JSON.stringify(data));
+
         this.body = new CANNON.Body({
             mass: this.mass,
             position: new CANNON.Vec3(this.position.x, this.position.y, this.position.z),
