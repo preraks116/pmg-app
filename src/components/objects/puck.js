@@ -8,10 +8,11 @@ class Puck {
         this.coord = { x: props.coord.x, z: props.coord.z}
         this.radialSegments = props.radialSegments ? props.radialSegments : 3;
         this.scene = scene;
+        this.type = props.type ? props.type : "puck";
         this.world = world;
 
         const data = {
-            type: "puck",
+            type: this.type,
             coord: {
                 x: props.coord.x,
                 z: props.coord.z,

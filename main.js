@@ -1,13 +1,13 @@
 import "./style.css";
 
 import * as THREE from "three";
-import * as CANNON from "cannon-es";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { Maze } from "./src/components/objects/maze";
-import { setKey } from "./src/utils/keyControls";
-import { checkObject } from "./src/scenes/perspective";
+import { keyDict, setKey } from "./src/utils/keyControls";
+import * as TIME from "./src/utils/time";
+
 import * as GSAP from "gsap";
 import {
   sceneObjects,
@@ -19,42 +19,27 @@ import {
   removeObject,
   addBall,
 } from "./src/scenes/perspective";
-import { maze } from "./src/mazes/dfs";
+
+let num_mazes = 0;
 
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+const scoreDiv = document.getElementById("score");
 
-const clockDiv = document.getElementById("clock");
-let time = 0;
-let millis;
-let timerbool = false;
-
-// let mazeParams = {
-//   algorithm: "dfs",
-//   X: 5,
-//   Y: 7,
-//   start: { type: "horiz", x: 0, z: 1 },
-//   end: { type: "verti", x: 4, z: 7 },
-// };
+// initlaize local storage
+localStorage.setItem("scores", JSON.stringify([]));
 
 let mazeParams2 = {
-  dimensions: { x: 17, y: 17 },
+  dimensions: { x: 10, y: 10 },
   algoType: "dfs",
   start: { type: "horiz", x: 0, z: 0 },
-  end: { type: "verti", x: 16, z: 17 },
+  end: { type: "verti", x: 9, z: 10 },
 }
-
-// This example takes 2 seconds to run
-const start = Date.now();
-
-console.log("starting timer...");
-// Expected output: "starting timer..."
 
 let mazeClass = new Maze(mazeParams2, scene, world);
 
 let controls, stats;
 let intersects = [];
 var mouse, raycaster;
-
 let camera;
 
 function onMouseMove(event) {
@@ -66,17 +51,29 @@ function onMouseMove(event) {
   getIntersects();
 }
 
+function updateScoreUI(data) {
+  // increase the height of the div and add the data
+  let height = parseInt(scoreDiv.style.height);
+  height += 50;
+  scoreDiv.style.height = `${height}px`;
+  let div = document.createElement("div");
+  div.innerHTML = `Maze ${num_mazes}: ${data.time} seconds`;
+  scoreDiv.appendChild(div);
+}
+
 function newMaze() {
   // console.log(mazeClass);
+  if(mazeClass.completed) {
+    mazeClass.time = TIME.getTime();
+    let data = mazeClass.storeData();
+    // updateScoreUI(data);
+    TIME.resetTimer();
+  }
+  
   mazeClass.derender(mazeClass.dimensions.x, mazeClass.dimensions.y);
-  // console.log(mazeParams);  
   mazeClass = new Maze(mazeParams2, scene, world);
   mazeClass.generate();
   mazeClass.render();
-
-  // render the end point
-  // sceneObjects.end.render();
-
 
   GSAP.gsap.to(sceneObjects.ball.body.position, {
     x: mazeClass.ballCoord.x,
@@ -85,33 +82,29 @@ function newMaze() {
   });
 }
 
-// function onClick() {
-//   // console.log(intersects);
-//   if (intersects.length > 0 && intersects[1].object.name === "plane") {
-//     // console.log('plane clicked');
-//     let coordinate = intersects[1].point;
-//     console.log(coordinate);
-//     // tween the players position to this coordinate
-//     var tween = GSAP.gsap.to(player.body.position, {
-//       duration: 1,
-//       x: coordinate.x,
-//       z: coordinate.z,
-//       ease: "power3.out",
-//     });
-//   }
-//   if (intersects.length > 0 && intersects[0].object.userData.isClickable) {
-//     intersects[0].object.userData.onClick();
-//   }
-// }
+function onClick() {
+  // console.log(intersects);
+  if (intersects.length > 0 && intersects[1].object.name === "plane") {
+    // console.log('plane clicked');
+    let coordinate = intersects[1].point;
+    console.log(coordinate);
+    // tween the players position to this coordinate
+    var tween = GSAP.gsap.to(player.body.position, {
+      duration: 1,
+      x: coordinate.x,
+      z: coordinate.z,
+      ease: "power3.out",
+    });
+  }
+  if (intersects.length > 0 && intersects[0].object.userData.isClickable) {
+    intersects[0].object.userData.onClick();
+  }
+}
 
 async function init() {
-  // initialization
   renderer.shadowMap.enabled = true;
   renderer.setPixelRatio(window.devicePixelRatio);
-  // renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  // renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.type = THREE.PCFShadowMap;
-  // console.log(renderer.shadowMap)
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setAnimationLoop(animate);
   document.body.appendChild(renderer.domElement);
@@ -120,8 +113,6 @@ async function init() {
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
 
-  // load camera
-  // camera.render();
   camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -130,9 +121,8 @@ async function init() {
   );
   camera.position.y = 65;
 
-  // orbit controls
   controls = new OrbitControls(camera, renderer.domElement);
-  controls.listenToKeyEvents(window); // optional
+  controls.listenToKeyEvents(window); 
   controls.minAzimuthAngle = -0.05;
   controls.maxAzimuthAngle = 0;
   controls.minPolarAngle = 0;
@@ -147,26 +137,13 @@ async function init() {
 
   // timer
   setInterval(() => {
-    millis = Date.now() - start;
-    
-    // console.log(time);
-
-    if (timerbool) {
-      time += 10;
-      clockDiv.innerHTML = `Time: ${(time / 1000).toFixed(2)}`
-    }
-    // console.log(`seconds elapsed = ${Math.floor(millis / 1000)}`);
-    // Expected output: "seconds elapsed = 2"
-  }, 10);
+    TIME.getTime();
+  }, TIME.dt);
 
 
   mazeClass.generate();
 
-
-  // console.log(sceneObjects.end.body.addEventListener('collide', function(e) {
-  //   console.log('collide');
-  // }));
-  addBall("ball", mazeClass.ballCoord);
+  addBall("ball", mazeClass.getBallCoords());
 
   // renders all objects in scene
   for (let key in sceneObjects) {
@@ -174,13 +151,9 @@ async function init() {
   }
 
   stats = new Stats();
-  // add custom panel
-  // add memory panel
-  // stats.addPanel(new Stats.Panel('Memory', '#ff8', '#221'));
-  stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3: mem, 4: calls, 5: raf, 6: all
+  stats.showPanel(0);
   document.body.appendChild(stats.dom);
 
-  // lighting.ambientLight.intensity = 1;
   // add gui
   const gui = new GUI();
   const mazeFolder = gui.addFolder("Maze");
@@ -211,7 +184,6 @@ async function init() {
   sizeFolder.add(mazeProps, "X", 5, 17, 1);
   sizeFolder.add(mazeProps, "Y", 5, 17, 1);
   sizeFolder.onChange(function(v){
-    // console.log(v)
     // reload the startFolder
     startX.destroy();
     startY.destroy();
@@ -249,17 +221,17 @@ async function init() {
     {
       Generate: () => {
         // check if start coordinates are valid
-        let starValue = 1;
+        let startValue = 1;
         let endValue = 1;
         // for valid start 
         if(mazeParams2.start.type == "verti"){
           if(!((mazeParams2.start.z == 0 || mazeParams2.start.z == mazeParams2.dimensions.y) && (mazeParams2.start.x < mazeParams2.dimensions.x))) {
-            starValue = 0
+            startValue = 0
           }
         }
         else {
           if(!((mazeParams2.start.x == 0 || mazeParams2.start.x == mazeParams2.dimensions.x) && (mazeParams2.start.z < mazeParams2.dimensions.y))) {
-            starValue = 0
+            startValue = 0
           }
         }
         // for valid end
@@ -274,7 +246,7 @@ async function init() {
           }
         }
 
-        if (!starValue) {
+        if (!startValue) {
           alert("Invalid start coordinates");
           return;
         }
@@ -365,30 +337,21 @@ async function init() {
     .add(propsDirectionalLightPosition, "Z", -100, 100)
     .step(0.01);
 
-  // let cannonCylinder = new CANNON.Cylinder(1, 1, 0.5, 3);
-  // let cannonBody = new CANNON.Body({
-  //   mass: 0,
-  //   shape: cannonCylinder,
-  //   position: new CANNON.Vec3(0, 0, 0),
-  // });
-  // world.addBody(cannonBody);
-
   // event listeners
   // window.addEventListener("click", onClick);
   window.addEventListener("mousemove", onMouseMove, false);
   window.addEventListener("keydown", (e) => {
-    if(!timerbool) {
-      timerbool = true;
+    if(e.key in keyDict) {
+      TIME.startTimer();
     }
     if (e.key === "o") {
       newMaze();
     } else if(e.key === 't') {
       mazeClass.derender();
     } else if (e.key === "p") {
-      timerbool = !timerbool;
+      // timerbool = !timerbool;
     } else if (e.key === "r") {
-      time = 0;
-      clockDiv.innerHTML = `Time: ${(time / 1000).toFixed(2)}`;
+      TIME.resetTimer();
     } else {
       setKey(e, true);
     }
@@ -408,14 +371,18 @@ async function init() {
 function interactionHandler(e, type) {
   const { bodyA, bodyB } = e;
   // console.log(bodyA, bodyB);
+  if(!bodyA || !bodyB) return;
   if(!bodyA.material.name || !bodyB.material.name) return;
   let dataA = JSON.parse(bodyA.material.name);
   let dataB = JSON.parse(bodyB.material.name);
 
   if(dataA.type === 'puck' || dataB.type === 'puck') {
     mazeClass.addToPath(dataA, dataB, type);
+  } else if(dataA.type === 'end' || dataB.type === 'end') {
+    mazeClass.completed = true;
+    num_mazes++;
+    newMaze();
   }
-
 }
 
 function resetFromHover() {
