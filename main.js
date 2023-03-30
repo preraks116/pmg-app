@@ -22,7 +22,9 @@ import {
 import { maze } from "./src/mazes/dfs";
 
 let num_mazes = 0;
-
+let camerabool = 0;
+const default_camera_pos = { x: 0, y: 65, z: 0 };
+const camera_birds_eye_height = 30;
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 const scoreDiv = document.getElementById("score");
 
@@ -125,7 +127,8 @@ async function init() {
     0.01,
     1000
   );
-  camera.position.y = 65;
+  // camera.position.y = 65;
+  camera.position.set(default_camera_pos.x, default_camera_pos.y, default_camera_pos.z);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.listenToKeyEvents(window);
@@ -421,6 +424,15 @@ async function init() {
       mazeClass.derender();
     } else if (e.key === "p") {
       // timerbool = !timerbool;
+    } else if(e.key === "c") {
+      if(camerabool) {
+        // enable scroll to zoom here
+        camera.position.set(default_camera_pos.x, default_camera_pos.y, default_camera_pos.z);
+        camerabool = 0;
+      } else {
+        // disable scroll to zoom here
+        camerabool = 1;
+      }
     } else if (e.key === "r") {
       TIME.resetTimer();
     } else {
@@ -488,7 +500,11 @@ function animate() {
   resetFromHover();
   // console.log(mazeClass)
   world.step(1 / 60);
-
+  // console.log(sceneObjects['ball'].body.position.x)
+  console.log(camera.position)
+  if(camerabool) {
+    camera.position.set(sceneObjects['ball'].body.position.x, camera_birds_eye_height, sceneObjects['ball'].body.position.z);
+  }
   for (let key in sceneObjects) {
     sceneObjects[key].update();
   }
