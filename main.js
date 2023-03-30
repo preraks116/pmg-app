@@ -21,10 +21,14 @@ import {
 } from "./src/scenes/scene";
 import { maze } from "./src/mazes/dfs";
 
+const testSeed = "96:o98jh3zmev4:5:itbrxwoqquo:6"
+
 let num_mazes = 0;
+
 let camerabool = 0;
 const default_camera_pos = { x: 0, y: 65, z: 0 };
-const camera_birds_eye_height = 30;
+let camera_birds_eye_height = 30;
+
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 const scoreDiv = document.getElementById("score");
 
@@ -164,6 +168,16 @@ async function init() {
 
   // add gui
   const gui = new GUI();
+  const cameraFolder = gui.addFolder("Camera");
+  const cameraProps = {
+    get birds_eye_height() {
+      return camera_birds_eye_height;
+    },
+    set birds_eye_height(value) {
+      camera_birds_eye_height = value;
+    }
+  }
+  cameraFolder.add(cameraProps, "birds_eye_height", 5, 50, 1);
   const mazeFolder = gui.addFolder("Maze");
   mazeFolder.add(mazeParams2, "algoType", {
     DFS: "dfs",
@@ -410,7 +424,8 @@ async function init() {
   directionalLightPositionFolder
     .add(propsDirectionalLightPosition, "Z", -100, 100)
     .step(0.01);
-
+  // close the lighting folder
+  lightingFolder.close();
   // event listeners
   // window.addEventListener("click", onClick);
   window.addEventListener("mousemove", onMouseMove, false);
@@ -426,11 +441,9 @@ async function init() {
       // timerbool = !timerbool;
     } else if(e.key === "c") {
       if(camerabool) {
-        // enable scroll to zoom here
         camera.position.set(default_camera_pos.x, default_camera_pos.y, default_camera_pos.z);
         camerabool = 0;
       } else {
-        // disable scroll to zoom here
         camerabool = 1;
       }
     } else if (e.key === "r") {
