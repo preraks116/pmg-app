@@ -18,7 +18,8 @@ import {
   addObject,
   removeObject,
   addBall,
-} from "./src/scenes/perspective";
+} from "./src/scenes/scene";
+import { maze } from "./src/mazes/dfs";
 
 let num_mazes = 0;
 
@@ -33,7 +34,7 @@ let mazeParams2 = {
   algoType: "dfs",
   start: { type: "horiz", x: 0, z: 0 },
   end: { type: "verti", x: 9, z: 10 },
-}
+};
 
 let mazeClass = new Maze(mazeParams2, scene, world);
 
@@ -53,23 +54,28 @@ function onMouseMove(event) {
 
 function updateScoreUI(data) {
   // increase the height of the div and add the data
-  let height = parseInt(scoreDiv.style.height);
-  height += 50;
-  scoreDiv.style.height = `${height}px`;
-  let div = document.createElement("div");
-  div.innerHTML = `Maze ${num_mazes}: ${data.time} seconds`;
-  scoreDiv.appendChild(div);
+  console.log(data);
+  scoreDiv.innerHTML += `
+  <div>
+    <br><p>${mazeClass.seed} -> ${mazeClass.time}s</p>
+  </div>
+`;
+  // let div = document.createElement("div");
+  // div.innerHTML = `Maze ${num_mazes}: ${data.time} seconds`;
+  // scoreDiv.appendChild(div);
 }
 
 function newMaze() {
-  // console.log(mazeClass);
-  if(mazeClass.completed) {
+  if (mazeClass.completed) {
     mazeClass.time = TIME.getTime();
     let data = mazeClass.storeData();
-    // updateScoreUI(data);
+    // console.log(data)
+    if (data) {
+      updateScoreUI(data);
+    }
     TIME.resetTimer();
   }
-  
+
   mazeClass.derender(mazeClass.dimensions.x, mazeClass.dimensions.y);
   mazeClass = new Maze(mazeParams2, scene, world);
   mazeClass.generate();
@@ -122,7 +128,7 @@ async function init() {
   camera.position.y = 65;
 
   controls = new OrbitControls(camera, renderer.domElement);
-  controls.listenToKeyEvents(window); 
+  controls.listenToKeyEvents(window);
   controls.minAzimuthAngle = -0.05;
   controls.maxAzimuthAngle = 0;
   controls.minPolarAngle = 0;
@@ -139,7 +145,6 @@ async function init() {
   setInterval(() => {
     TIME.getTime();
   }, TIME.dt);
-
 
   mazeClass.generate();
 
@@ -180,41 +185,83 @@ async function init() {
       mazeParams2.dimensions.y = value;
     },
   };
-  
+
   sizeFolder.add(mazeProps, "X", 5, 17, 1);
   sizeFolder.add(mazeProps, "Y", 5, 17, 1);
-  sizeFolder.onChange(function(v){
+  sizeFolder.onChange(function (v) {
     // reload the startFolder
     startX.destroy();
     startY.destroy();
-    startX = startFolder.add(mazeParams2.start, "x", 0, mazeParams2.dimensions.x, 1);
-    startY = startFolder.add(mazeParams2.start, "z", 0, mazeParams2.dimensions.y, 1);
+    startX = startFolder.add(
+      mazeParams2.start,
+      "x",
+      0,
+      mazeParams2.dimensions.x,
+      1
+    );
+    startY = startFolder.add(
+      mazeParams2.start,
+      "z",
+      0,
+      mazeParams2.dimensions.y,
+      1
+    );
 
     // reload the endFolder
     endX.destroy();
     endY.destroy();
     endX = endFolder.add(mazeParams2.end, "x", 0, mazeParams2.dimensions.x, 1);
     endY = endFolder.add(mazeParams2.end, "z", 0, mazeParams2.dimensions.y, 1);
-  })
+  });
   const startFolder = mazeFolder.addFolder("Start");
-  startFolder.add(mazeParams2.start, "type" , { Vertical: "verti", Horizontal: "horiz" });
-  let startX = startFolder.add(mazeParams2.start, "x", 0, mazeParams2.dimensions.x, 1);
-  let startY = startFolder.add(mazeParams2.start, "z", 0, mazeParams2.dimensions.y, 1);
+  startFolder.add(mazeParams2.start, "type", {
+    Vertical: "verti",
+    Horizontal: "horiz",
+  });
+  let startX = startFolder.add(
+    mazeParams2.start,
+    "x",
+    0,
+    mazeParams2.dimensions.x,
+    1
+  );
+  let startY = startFolder.add(
+    mazeParams2.start,
+    "z",
+    0,
+    mazeParams2.dimensions.y,
+    1
+  );
 
   const endFolder = mazeFolder.addFolder("End");
-  let endSelect = endFolder.add(mazeParams2.end, "type" , { Vertical: "verti", Horizontal: "horiz", Random: "random" });
-  let endX = endFolder.add(mazeParams2.end, "x", 0, mazeParams2.dimensions.x, 1);
-  let endY = endFolder.add(mazeParams2.end, "z", 0, mazeParams2.dimensions.y, 1);
-  endSelect.onChange(function(v){
-    if(v == "random") {
+  let endSelect = endFolder.add(mazeParams2.end, "type", {
+    Vertical: "verti",
+    Horizontal: "horiz",
+    Random: "random",
+  });
+  let endX = endFolder.add(
+    mazeParams2.end,
+    "x",
+    0,
+    mazeParams2.dimensions.x,
+    1
+  );
+  let endY = endFolder.add(
+    mazeParams2.end,
+    "z",
+    0,
+    mazeParams2.dimensions.y,
+    1
+  );
+  endSelect.onChange(function (v) {
+    if (v == "random") {
       endX.disable();
       endY.disable();
-    }
-    else {
+    } else {
       endX.enable();
       endY.enable();
     }
-  })
+  });
 
   // add a button to the maze folder
   mazeFolder.add(
@@ -223,26 +270,48 @@ async function init() {
         // check if start coordinates are valid
         let startValue = 1;
         let endValue = 1;
-        // for valid start 
-        if(mazeParams2.start.type == "verti"){
-          if(!((mazeParams2.start.z == 0 || mazeParams2.start.z == mazeParams2.dimensions.y) && (mazeParams2.start.x < mazeParams2.dimensions.x))) {
-            startValue = 0
+        // for valid start
+        if (mazeParams2.start.type == "verti") {
+          if (
+            !(
+              (mazeParams2.start.z == 0 ||
+                mazeParams2.start.z == mazeParams2.dimensions.y) &&
+              mazeParams2.start.x < mazeParams2.dimensions.x
+            )
+          ) {
+            startValue = 0;
           }
-        }
-        else {
-          if(!((mazeParams2.start.x == 0 || mazeParams2.start.x == mazeParams2.dimensions.x) && (mazeParams2.start.z < mazeParams2.dimensions.y))) {
-            startValue = 0
+        } else {
+          if (
+            !(
+              (mazeParams2.start.x == 0 ||
+                mazeParams2.start.x == mazeParams2.dimensions.x) &&
+              mazeParams2.start.z < mazeParams2.dimensions.y
+            )
+          ) {
+            startValue = 0;
           }
         }
         // for valid end
-        if(mazeParams2.end.type == "verti"){
-          if(!((mazeParams2.end.z == 0 || mazeParams2.end.z == mazeParams2.dimensions.y) && (mazeParams2.end.x < mazeParams2.dimensions.x))) {
-            endValue = 0
+        if (mazeParams2.end.type == "verti") {
+          if (
+            !(
+              (mazeParams2.end.z == 0 ||
+                mazeParams2.end.z == mazeParams2.dimensions.y) &&
+              mazeParams2.end.x < mazeParams2.dimensions.x
+            )
+          ) {
+            endValue = 0;
           }
-        }
-        else {
-          if(!((mazeParams2.end.x == 0 || mazeParams2.end.x == mazeParams2.dimensions.x) && (mazeParams2.end.z < mazeParams2.dimensions.y))) {
-            endValue = 0
+        } else {
+          if (
+            !(
+              (mazeParams2.end.x == 0 ||
+                mazeParams2.end.x == mazeParams2.dimensions.x) &&
+              mazeParams2.end.z < mazeParams2.dimensions.y
+            )
+          ) {
+            endValue = 0;
           }
         }
 
@@ -254,6 +323,8 @@ async function init() {
           alert("Invalid end coordinates");
           return;
         }
+        // here specifically if the button is pressed the timer needs to be reset
+        TIME.resetTimer();
         newMaze();
       },
     },
@@ -341,12 +412,12 @@ async function init() {
   // window.addEventListener("click", onClick);
   window.addEventListener("mousemove", onMouseMove, false);
   window.addEventListener("keydown", (e) => {
-    if(e.key in keyDict) {
+    if (e.key in keyDict) {
       TIME.startTimer();
     }
     if (e.key === "o") {
       newMaze();
-    } else if(e.key === 't') {
+    } else if (e.key === "t") {
       mazeClass.derender();
     } else if (e.key === "p") {
       // timerbool = !timerbool;
@@ -360,27 +431,28 @@ async function init() {
   window.addEventListener("keyup", (e) => setKey(e, false));
 
   // collision detection listeners
-  world.addEventListener('beginContact', (e) => {
-      interactionHandler(e, 'beginContact');
+  world.addEventListener("beginContact", (e) => {
+    interactionHandler(e, "beginContact");
   });
-  world.addEventListener('endContact', (e) => {
-      interactionHandler(e, 'endContact');
+  world.addEventListener("endContact", (e) => {
+    interactionHandler(e, "endContact");
   });
 }
 
 function interactionHandler(e, type) {
   const { bodyA, bodyB } = e;
   // console.log(bodyA, bodyB);
-  if(!bodyA || !bodyB) return;
-  if(!bodyA.material.name || !bodyB.material.name) return;
+  if (!bodyA || !bodyB) return;
+  if (!bodyA.material.name || !bodyB.material.name) return;
   let dataA = JSON.parse(bodyA.material.name);
   let dataB = JSON.parse(bodyB.material.name);
 
-  if(dataA.type === 'puck' || dataB.type === 'puck') {
+  if (dataA.type === "puck" || dataB.type === "puck") {
     mazeClass.addToPath(dataA, dataB, type);
-  } else if(dataA.type === 'end' || dataB.type === 'end') {
+  } else if (dataA.type === "end" || dataB.type === "end" && !mazeClass.completed) {
     mazeClass.completed = true;
     num_mazes++;
+    console.log("completed maze");
     newMaze();
   }
 }

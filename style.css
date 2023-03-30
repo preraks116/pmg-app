@@ -29,15 +29,16 @@
   /* z-index: -1; */
 }
 
-#scores {
+#score {
   font-family: 'Courier New', Courier, monospace;
   color: white;
   position: absolute;
-  height: 20px;
+  height: 200px;
   width: 450px;
   bottom: 0%;
   right: 0%;
   text-align: center;
+  overflow-y:auto;
   padding-top: 15px;
   padding-bottom: 15px;
   /* width: 100%; */
@@ -45,4 +46,8 @@
   background: black;
   border: white solid 1px;
   /* z-index: -1; */
+}
+
+#score p {
+
 }

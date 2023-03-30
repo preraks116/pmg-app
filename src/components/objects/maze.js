@@ -8,7 +8,7 @@ import {
   checkObject,
   removeObject,
   sceneObjects,
-} from "../../scenes/perspective";
+} from "../../scenes/scene";
 
 function compress(arr) {
   let binaryStr = "";
@@ -211,7 +211,7 @@ class Maze {
     let data_list = JSON.parse(localStorage.getItem("scores"));
     data_list.push(data);
     localStorage.setItem("scores", JSON.stringify(data_list));
-
+    // console.log(data)
     return data;
   }
   generate() {
@@ -221,22 +221,18 @@ class Maze {
     this.generateSeed();
   }
   generateSeed() {
-    // using this.dimensions, this.verti and this.horiz, generate a seed
     let bin_x = this.dimensions.x.toString(2).padStart(5, "0");
     let bin_y = this.dimensions.y.toString(2).padStart(5, "0");
     let verti_seed = compress(this.verti);
     let hori_seed = compress(this.horiz);
-    // count the number of trailing zeros in verti_seed and hori_seed
     let verti_zeros = verti_seed.match(/0+$/)[0].length;
     let hori_zeros = hori_seed.match(/0+$/)[0].length;
-    // remove the trailing zeros from verti_seed and hori_seed
     verti_seed = verti_seed.replace(/0+$/, "");
     hori_seed = hori_seed.replace(/0+$/, "");
     let dim_seed = parseInt(bin_x + bin_y, 2).toString(36);
     this.seed = dim_seed + ":" + verti_seed + ":" + verti_zeros + ":" + hori_seed + ":" + hori_zeros;
 
     return this.seed;
-  
   }
   decompress(seed) {
     // given the seed it converts into maze parameters
@@ -289,7 +285,7 @@ class Maze {
     for (let obh in sceneObjects) {
       if (obh.includes("end")) {
         removeObject(obh);
-        console.log(obh);
+        // console.log(obh);
       }
     }
     // removeObject(`end`);
