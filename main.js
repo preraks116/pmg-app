@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
-import { Maze } from "./src/components/objects/maze";
+import { MazeGenerator } from "./src/components/mazes/maze";
 import { keyDict, setKey } from "./src/utils/keyControls";
 import * as TIME from "./src/utils/time";
 
@@ -19,7 +19,7 @@ import {
   removeObject,
   addBall,
 } from "./src/scenes/scene";
-import { maze } from "./src/mazes/dfs";
+import { maze } from "./src/components/mazes/algorithms/dfs";
 
 const testSeed = "96:o98jh3zmev4:5:itbrxwoqquo:6"
 
@@ -42,7 +42,7 @@ let mazeParams2 = {
   end: { type: "verti", x: 9, z: 10 },
 };
 
-let mazeClass = new Maze(mazeParams2, scene, world);
+let curMaze = new MazeGenerator(mazeParams2, scene, world);
 
 let controls, stats;
 let intersects = [];
@@ -63,7 +63,7 @@ function updateScoreUI(data) {
   console.log(data);
   scoreDiv.innerHTML += `
   <div>
-    <br><p>${mazeClass.seed} -> ${mazeClass.time}s</p>
+    <br><p>${curMaze.seed} -> ${curMaze.time}s</p>
   </div>
 `;
   // let div = document.createElement("div");
@@ -72,9 +72,9 @@ function updateScoreUI(data) {
 }
 
 function newMaze() {
-  if (mazeClass.completed) {
-    mazeClass.time = TIME.getTime();
-    let data = mazeClass.storeData();
+  if (curMaze.completed) {
+    curMaze.time = TIME.getTime();
+    let data = curMaze.storeData();
     // console.log(data)
     if (data) {
       updateScoreUI(data);
@@ -82,14 +82,14 @@ function newMaze() {
     TIME.resetTimer();
   }
 
-  mazeClass.derender(mazeClass.dimensions.x, mazeClass.dimensions.y);
-  mazeClass = new Maze(mazeParams2, scene, world);
-  mazeClass.generate();
-  mazeClass.render();
+  curMaze.derender(curMaze.dimensions.x, curMaze.dimensions.y);
+  curMaze = new MazeGenerator(mazeParams2, scene, world);
+  curMaze.generate();
+  curMaze.render();
 
   GSAP.gsap.to(sceneObjects.ball.body.position, {
-    x: mazeClass.ballCoord.x,
-    z: mazeClass.ballCoord.z,
+    x: curMaze.ballCoord.x,
+    z: curMaze.ballCoord.z,
     duration: 1,
   });
 }
@@ -153,9 +153,9 @@ async function init() {
     TIME.getTime();
   }, TIME.dt);
 
-  mazeClass.generate();
+  curMaze.generate();
 
-  addBall("ball", mazeClass.getBallCoords());
+  addBall("ball", curMaze.getBallCoords());
 
   // renders all objects in scene
   for (let key in sceneObjects) {
@@ -181,11 +181,11 @@ async function init() {
   const mazeFolder = gui.addFolder("Maze");
   mazeFolder.add(mazeParams2, "algoType", {
     DFS: "dfs",
-    Kruskal: "kruskal",
+    // Kruskal: "kruskal",
     Eller: "eller",
     Prims: "prims",
-    "Recursive Backtracking": "recurback",
-    Aldous: "aldous",
+    // "Recursive Backtracking": "recurback",
+    // Aldous: "aldous",
   });
   const sizeFolder = mazeFolder.addFolder("Size");
   const mazeProps = {
@@ -436,7 +436,7 @@ async function init() {
     if (e.key === "o") {
       newMaze();
     } else if (e.key === "t") {
-      mazeClass.derender();
+      curMaze.derender();
     } else if (e.key === "p") {
       // timerbool = !timerbool;
     } else if(e.key === "c") {
@@ -473,9 +473,9 @@ function interactionHandler(e, type) {
   let dataB = JSON.parse(bodyB.material.name);
 
   if (dataA.type === "puck" || dataB.type === "puck") {
-    mazeClass.addToPath(dataA, dataB, type);
-  } else if (dataA.type === "end" || dataB.type === "end" && !mazeClass.completed) {
-    mazeClass.completed = true;
+    curMaze.addToPath(dataA, dataB, type);
+  } else if (dataA.type === "end" || dataB.type === "end" && !curMaze.completed) {
+    curMaze.completed = true;
     num_mazes++;
     console.log("completed maze");
     newMaze();
@@ -521,7 +521,7 @@ function animate() {
   for (let key in sceneObjects) {
     sceneObjects[key].update();
   }
-  mazeClass.update();
+  curMaze.update();
   cannonDebugger.update();
 }
 

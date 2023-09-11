@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
-import { Box } from "./box";
-import { Puck } from "./puck";
-import { mazes } from "../../mazes/mazes";
+import { Box } from "../objects/box";
+import { Puck } from "../objects/puck";
+import { algorithms } from "./algorithms";
 import {
   addObject,
   checkObject,
@@ -36,9 +36,7 @@ function decompress(str) {
   return arr;
 }
 
-
-
-class Maze {
+class MazeGenerator {
   constructor(props, scene, world) {
     this.dimensions = props.dimensions;
     this.algoType = props.algoType;
@@ -55,7 +53,7 @@ class Maze {
     this.scene = scene;
     this.world = world;
 
-    this.algo = mazes[this.algoType](this.dimensions.x, this.dimensions.y);
+    this.algo = algorithms[this.algoType](this.dimensions.x, this.dimensions.y);
     this.horiz = this.algo.horiz;
     this.verti = this.algo.verti;
 
@@ -218,7 +216,7 @@ class Maze {
     this.generateWalls();
     this.generatePucks();
     this.generateEnd();
-    this.generateSeed();
+    // this.generateSeed();
   }
   generateSeed() {
     let bin_x = this.dimensions.x.toString(2).padStart(5, "0");
@@ -370,4 +368,4 @@ class Maze {
   // }
 }
 
-export { Maze };
+export { MazeGenerator };
